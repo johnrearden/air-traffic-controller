@@ -21,6 +21,9 @@ Here is a live version of my project
 
 ## Data Model
 
+## Execution Paths
+[LucidChart diagram](https://lucid.app/lucidchart/090f8713-1074-44e7-b44d-6160809bc832/view?page=0_0&invitationId=inv_75cc9f28-bdbe-49ba-bc93-8295f0d0a62c#)
+
 ## Testing
 ### Manual Testing
 ### Automated Testing
