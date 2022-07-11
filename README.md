@@ -1,31 +1,35 @@
-![CI logo](https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png)
+# Air Traffic Controller
 
-Welcome USER_NAME,
+Air traffic controller is a Python3 terminal game, which runs in the Code Institute mock terminal on Heroku.
 
-This is the Code Institute student template for deploying your third portfolio project, the Python command-line project. The last update to this file was: **August 17, 2021**
+Players must command a series of planes as they enter an airfield, and guide them either to land at a runway or leave by a designated exit.
 
-## Reminders
+Here is a live version of my project
 
-* Your code must be placed in the `run.py` file
-* Your dependencies must be placed in the `requirements.txt` file
-* Do not edit any of the other files or your code may not deploy properly
+## Screenshots
 
-## Creating the Heroku app
+## How to play
 
-When you create the app, you will need to add two buildpacks from the _Settings_ tab. The ordering is as follows:
+## Features
+### Existing Features
+- Random runway, exit and entry positions
+- Color coded map display, showing planes and static map elements
+- List of planes present in map, with information on each
+- Command parsing and validation
 
-1. `heroku/python`
-2. `heroku/nodejs`
+### Future Features
 
-You must then create a _Config Var_ called `PORT`. Set this to `8000`
+## Data Model
 
-If you have credentials, such as in the Love Sandwiches project, you must create another _Config Var_ called `CREDS` and paste the JSON into the value field.
+## Testing
+### Manual Testing
+### Automated Testing
+### Bugs
+#### Solved Bugs
+#### Remaining Bugs
+### Validator Testing
 
-Connect your GitHub repository and deploy as normal.
+## Deployment
 
-## Constraints
-
-The deployment terminal is set to 80 columns by 24 rows. That means that each line of text needs to be 80 characters or less otherwise it will be wrapped onto a second line.
-
------
-Happy coding!
+## Credits
+- Code Institute for the deployment terminal
