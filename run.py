@@ -15,21 +15,7 @@ class Airfield:
                 self.cells.append(UniChars.MIDDLE_DOT)
             else:
                 self.cells.append(" ")
-        self.background = self.cells[:]
-
-    def update(self, planes):
-        """Updates the airfield on each frame"""
-        self.cells = self.background[:]
-        for plane in planes:
-            cell_number = plane.x_pos + plane.y_pos * self.width
-            if plane.direction == Direction.NORTH:
-                self.cells[cell_number] = UniChars.PLANE_NORTH
-            elif plane.direction == Direction.SOUTH:
-                self.cells[cell_number] = UniChars.PLANE_SOUTH
-            elif plane.direction == Direction.WEST:
-                self.cells[cell_number] = UniChars.PLANE_WEST
-            else:
-                self.cells[cell_number] = UniChars.PLANE_EAST
+        self.output_string = self.stringify()
 
     def stringify(self):
         """Converts the cells array into a printable string for stdout"""
@@ -39,15 +25,14 @@ class Airfield:
         """Prints the airfield string to the terminal"""
         sys.stdout.write(AnsiCommands.SAVE_CURSOR)
         sys.stdout.write(AnsiCommands.CURSOR_TO_HOME)
-        sys.stdout.write(self.stringify())
+        sys.stdout.write(self.output_string)
         sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
         sys.stdout.flush()
 
     def initial_print(self):
         """Prints the airfield string without saving the cursor"""
-        sys.stdout.write(AnsiCommands.CURSOR_UP_ONE_LINE)
         sys.stdout.write(AnsiCommands.CURSOR_TO_HOME)
-        sys.stdout.write(self.stringify())
+        sys.stdout.write(self.output_string)
         sys.stdout.flush()
 
 class Plane:
@@ -75,6 +60,8 @@ class Plane:
 
         self.fuel -= 1
 
+        self.print()
+
     def parse_command(self, command):
         """Interprets validated commands from the user"""
         if command == "n":
@@ -86,12 +73,19 @@ class Plane:
         elif command == "w":
             self.direction = Direction.WEST
 
+    def print(self):
+        """Prints this plane to the display"""
+        sys.stdout.write(AnsiCommands.SAVE_CURSOR)
+        sys.stdout.write(f"\x1b[{self.y_pos};{self.x_pos}H")
+        sys.stdout.write(UniChars.PLANE_EAST)
+        sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
+        sys.stdout.flush()
+
 def main_loop(airfield, planes):
     """The main game loop"""
+    airfield.print()
     for plane in planes:
         plane.update()
-    airfield.update(planes)
-    airfield.print()
     timer = threading.Timer(1, main_loop, [airfield, planes])
     timer.start()
 
