@@ -1,6 +1,6 @@
 import threading
 import sys
-from constants import UniChars, Colors, AnsiCommands, Direction
+from constants import UniChars, AnsiCommands, Direction
 
 class Airfield:
     """
@@ -18,6 +18,7 @@ class Airfield:
         self.background = self.cells[:]
 
     def update(self, planes):
+        """Updates the airfield on each frame"""
         self.cells = self.background[:]
         for plane in planes:
             cell_number = plane.x_pos + plane.y_pos * self.width
@@ -60,8 +61,9 @@ class Plane:
         self.fuel = 50
         self.direction = Direction.EAST
         self.color = None
-    
+
     def update(self):
+        """Updates the planes position and altitude"""
         if self.direction == Direction.EAST:
             self.x_pos += 2
         elif self.direction == Direction.WEST:
@@ -74,6 +76,7 @@ class Plane:
         self.fuel -= 1
 
     def parse_command(self, command):
+        """Interprets validated commands from the user"""
         if command == "n":
             self.direction = Direction.NORTH
         elif command == "s":
@@ -84,15 +87,17 @@ class Plane:
             self.direction = Direction.WEST
 
 def main_loop(airfield, planes):
+    """The main game loop"""
     for plane in planes:
         plane.update()
     airfield.update(planes)
     airfield.print()
-    t = threading.Timer(1, main_loop, [airfield, planes])
-    t.start()
+    timer = threading.Timer(1, main_loop, [airfield, planes])
+    timer.start()
 
 
 def main():
+    """Entry point for the program"""
     sys.stdout.write(AnsiCommands.CLEAR_SCREEN)
     sys.stdout.flush()
     airfield = Airfield(80, 20)
