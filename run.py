@@ -3,6 +3,7 @@ import sys
 import string
 import random
 from constants import UniChars, AnsiCommands, Direction, Colors, EntryPoints
+from utilities import getMoveCursorString
 
 class Airfield:
     """
@@ -49,13 +50,18 @@ class Airfield:
         """Converts the cells array into a printable string for stdout"""
         return ''.join(self.cells)
 
-    def print(self):
+    def print(self, planes):
         """Prints the airfield string to the terminal"""
         sys.stdout.write(AnsiCommands.SAVE_CURSOR)
         sys.stdout.write(AnsiCommands.CURSOR_TO_HOME)
         sys.stdout.write(self.output_string)
 
         # Write the details of the planes to the plane display
+        display_list = planes.values().enumerate()
+        for item in display_list:
+            pass
+
+        # Restore the cursor to the input line and flush the buffer
         sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
         sys.stdout.flush()
 
@@ -105,7 +111,7 @@ class Plane:
     def print(self):
         """Prints this plane to the display"""
         sys.stdout.write(AnsiCommands.SAVE_CURSOR)
-        sys.stdout.write(f"\x1b[{self.y_pos + 1};{self.x_pos + 1}H")
+        sys.stdout.write(getMoveCursorString(self.x_pos, self.y_pos))
         sys.stdout.write(self.color.value)
         sys.stdout.write(f"{self.direction.get_character()} {self.identity}")
         sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
@@ -113,7 +119,7 @@ class Plane:
 
 def main_loop(airfield, planes, counter):
     """The main game loop"""
-    airfield.print()
+    airfield.print(planes)
     if len(planes) < 8:
         next_identifier = airfield.plane_names.pop(0)
         plane = Plane(next_identifier)
