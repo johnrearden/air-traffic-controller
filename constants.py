@@ -51,6 +51,7 @@ class AnsiCommands(str, enum.Enum):
     CURSOR_UP_ONE_LINE = f"\x1b[1A"
     BLINK = "\x1b[5m"
     NORMAL = "\x1b[0m"
+    FAINT = "\x1b[2m"
     DEFAULT_COLOR = "\x1b[00m"
 
 class Direction(enum.Enum):
@@ -71,9 +72,9 @@ class EntryPoints(enum.Enum):
     enter the airfield, and the initial direction the plane
     is travelling in. The values are wrapped in a tuple.
     """
-    POINT_1 = (50, 0, Direction.SOUTH)
-    POINT_2 = (23, 19, Direction.NORTH)
-    POINT_3 = (11, 0, Direction.SOUTH)
+    POINT_1 = (50, 1, Direction.SOUTH)
+    POINT_2 = (24, 19, Direction.NORTH)
+    POINT_3 = (12, 1, Direction.SOUTH)
     POINT_4 = (0, 6, Direction.EAST)
     POINT_5 = (60, 14, Direction.WEST)
 

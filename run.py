@@ -34,10 +34,6 @@ class Airfield:
         self.cells[60] = UniChars.BOX_TOP_RIGHT
         self.cells[19 * width] = UniChars.BOX_BOTTOM_LEFT
         self.cells[19 * width + 60] = UniChars.BOX_BOTTOM_RIGHT
-        list_1 = [i for i in range(62, 73)]
-        list_2 = [UniChars.PLANE_EAST, " "," ", "F", "U", "E", "L", " ", "A", "L", "T"]
-        for ind, char in zip(list_1, list_2):
-            self.cells[ind] = char
         
         for entry_point in EntryPoints:
             x = entry_point.value[0]
@@ -51,12 +47,15 @@ class Airfield:
         return ''.join(self.cells)
 
     def print(self, planes):
-        """Prints the airfield string to the terminal"""
+        """Prints the airfield string and plane summary to the terminal"""
+        
         sys.stdout.write(AnsiCommands.SAVE_CURSOR)
         sys.stdout.write(AnsiCommands.CURSOR_TO_HOME)
         sys.stdout.write(self.output_string)
 
-        # Write the details of the planes to the plane display
+        # Write the details of the planes to the plane summary
+        sys.stdout.write(getMoveCursorString(63, 0))
+        sys.stdout.write(f"{UniChars.PLANE_EAST}  FUEL ALTITUDE")
         display_list = list(enumerate(planes.values(), start=2))
         for item in display_list:
             y = item[0]
@@ -64,7 +63,7 @@ class Airfield:
             sys.stdout.write(getMoveCursorString(63, y))
             sys.stdout.write(plane.color.value)
             sys.stdout.write(plane.identity)
-            sys.stdout.write(f"  {plane.fuel}")
+            sys.stdout.write(f"   {plane.fuel}")
             sys.stdout.write(getMoveCursorString(71, y))
             sys.stdout.write(f"{plane.altitude}")
 
@@ -88,6 +87,7 @@ class Plane:
         self.altitude = 5000
         self.fuel = 50
         self.color = Colors.random()
+        self.eliminated = False
 
     def update(self):
         """Updates the planes position and altitude"""
@@ -102,7 +102,18 @@ class Plane:
 
         self.fuel -= 1
 
-        self.print()
+        # If the plane has left the airfield, flag it as eliminated
+        if self.x_pos < 1 or self.x_pos > 58 or self.y_pos < 2 or self.y_pos > 19:
+            self.eliminated = True
+
+        # If the plane has run out of fuel, flag it as eliminated
+        if self.fuel <= 0:
+            self.eliminated = True
+
+        if not(self.eliminated):
+            self.print()
+
+        
 
     def parse_command(self, command):
         """Interprets validated commands from the user"""
@@ -120,23 +131,36 @@ class Plane:
         sys.stdout.write(AnsiCommands.SAVE_CURSOR)
         sys.stdout.write(getMoveCursorString(self.x_pos, self.y_pos))
         sys.stdout.write(self.color.value)
-        sys.stdout.write(f"{self.direction.get_character()} {self.identity}")
+        sys.stdout.write(f"{self.direction.get_character()} {AnsiCommands.FAINT}{self.identity}")
         sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
         sys.stdout.flush()
 
 def main_loop(airfield, planes, counter):
     """The main game loop"""
     airfield.print(planes)
-    if len(planes) < 8:
+    if len(planes) < 10 and random.randint(1, 100) < 30:
         next_identifier = airfield.plane_names.pop(0)
         plane = Plane(next_identifier)
         planes[next_identifier] = plane
         airfield.plane_names.append(next_identifier)
     for plane in planes.values():
         plane.update()
-    timer = threading.Timer(1, main_loop, [airfield, planes, counter + 1])
+    planes = {key:plane for (key, plane) in planes.items() if plane.eliminated == False}
+    timer = threading.Timer(1.5, main_loop, [airfield, planes, counter + 1])
     timer.start()
 
+def validate_command(command, planes):
+    elements = command.split(" ")
+    if elements[0] not in planes.keys():
+        print_error("No such plane!")
+
+def print_error(message):
+    sys.stdout.write(AnsiCommands.SAVE_CURSOR)
+    sys.stdout.write(getMoveCursorString(0, 22))
+    sys.stdout.write(Colors.FOREGROUND_RED)
+    sys.stdout.write(message)
+    sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
+    sys.stdout.flush()
 
 def main():
     """Entry point for the program"""
@@ -148,8 +172,9 @@ def main():
     main_loop(airfield, planes, 0)
     while True:
         command = input("Enter command : ")
-        plane_1.parse_command(command)
+        validate_command(command, planes)
         sys.stdout.write(AnsiCommands.CURSOR_UP_ONE_LINE)
         sys.stdout.write(AnsiCommands.CLEAR_LINE)
+        sys.stdout.flush()
 
 main()
