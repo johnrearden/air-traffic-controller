@@ -132,6 +132,7 @@ class Plane:
         sys.stdout.write(getMoveCursorString(self.x_pos, self.y_pos))
         sys.stdout.write(self.color.value)
         sys.stdout.write(f"{self.direction.get_character()} {AnsiCommands.FAINT}{self.identity}")
+        sys.stdout.write(AnsiCommands.NORMAL)
         sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
         sys.stdout.flush()
 
@@ -150,14 +151,26 @@ def main_loop(airfield, planes, counter):
     timer.start()
 
 def validate_command(command, planes):
+    if len(command) == 0:
+        print_message("You didn't enter anything!", True)
+        return
+    if len(command) > 3:
+        print_message("Too many commands!", True)
+        return
+
     elements = command.split(" ")
     if elements[0] not in planes.keys():
-        print_error("No such plane!")
+        print_message("Sorry! No such plane!", True)
+        return
+    plane_key = elements[0]
 
-def print_error(message):
+
+def print_message(message, error=False):
     sys.stdout.write(AnsiCommands.SAVE_CURSOR)
     sys.stdout.write(getMoveCursorString(0, 22))
-    sys.stdout.write(Colors.FOREGROUND_RED)
+    if error:
+        sys.stdout.write(Colors.FOREGROUND_RED)
+    sys.stdout.write(AnsiCommands.CLEAR_LINE)
     sys.stdout.write(message)
     sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
     sys.stdout.flush()
