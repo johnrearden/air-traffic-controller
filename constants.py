@@ -75,7 +75,7 @@ class EntryPoints(enum.Enum):
     POINT_2 = (23, 19, Direction.NORTH)
     POINT_3 = (11, 0, Direction.SOUTH)
     POINT_4 = (0, 6, Direction.EAST)
-    POINT_5 = (61, 19, Direction.WEST)
+    POINT_5 = (60, 14, Direction.WEST)
 
     @staticmethod
     def random():
