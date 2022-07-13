@@ -1,6 +1,6 @@
 import threading
 import sys
-from constants import UniChars, AnsiCommands, Direction
+from constants import UniChars, AnsiCommands, Direction, Colors, EntryPoints
 
 class Airfield:
     """
@@ -12,9 +12,32 @@ class Airfield:
         self.cells = []
         for _ in range(width * height):
             if _ % self.width < 60:
-                self.cells.append(UniChars.MIDDLE_DOT)
-            else:
                 self.cells.append(" ")
+            else:
+                self.cells.append(UniChars.MIDDLE_DOT)
+        for ind in range(60):
+            self.cells[ind] = UniChars.BOX_HORIZONTAL
+            self.cells[ind + width * (height - 1)] = UniChars.BOX_HORIZONTAL
+        for ind in range(0, 20):
+            self.cells[width * ind] = UniChars.BOX_VERTICAL
+            self.cells[ind * width - 20] = UniChars.BOX_VERTICAL
+        list_1 = [i for i in range(822, 837)]
+        list_2 = ["-", "-", " ", "R", "U", "N", "W", "A", "Y", " ", "-", "-"]
+        for ind, char in zip(list_1, list_2):
+            self.cells[ind] = UniChars.HORIZONTAL_LINE
+            self.cells[ind + width * 2] = "\u2500"
+            self.cells[ind + width] = char
+        self.cells[915] = UniChars.LEFT_ARROW
+        self.cells[0] = UniChars.BOX_TOP_LEFT
+        self.cells[60] = UniChars.BOX_TOP_RIGHT
+        self.cells[19 * width] = UniChars.BOX_BOTTOM_LEFT
+        self.cells[19 * width + 60] = UniChars.BOX_BOTTOM_RIGHT
+        
+        for entry_point in EntryPoints:
+            x = entry_point.value[0]
+            y = entry_point.value[1]
+            self.cells[x + y * width] = " "
+
         self.output_string = self.stringify()
 
     def stringify(self):
@@ -39,13 +62,12 @@ class Plane:
     """
     Represents an airplane
     """
-    def __init__(self):
-        self.x_pos = 10
-        self.y_pos = 10
+    def __init__(self, identity):
+        self.identity = id
+        (self.x_pos, self.y_pos, self.direction) = EntryPoints.random()
         self.altitude = 5
         self.fuel = 50
-        self.direction = Direction.EAST
-        self.color = None
+        self.color = Colors.random()
 
     def update(self):
         """Updates the planes position and altitude"""
@@ -77,7 +99,8 @@ class Plane:
         """Prints this plane to the display"""
         sys.stdout.write(AnsiCommands.SAVE_CURSOR)
         sys.stdout.write(f"\x1b[{self.y_pos};{self.x_pos}H")
-        sys.stdout.write(UniChars.PLANE_EAST)
+        sys.stdout.write(self.color.value)
+        sys.stdout.write(self.direction.get_character())
         sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
         sys.stdout.flush()
 
@@ -97,7 +120,7 @@ def main():
     airfield = Airfield(80, 20)
     airfield.initial_print()
     planes = []
-    plane_1 = Plane()
+    plane_1 = Plane("a")
     planes.append(plane_1)
     main_loop(airfield, planes)
     while True:

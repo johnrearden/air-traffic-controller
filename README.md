@@ -36,3 +36,4 @@ Here is a live version of my project
 
 ## Credits
 - Code Institute for the deployment terminal
+- [Choose random enum from list](https://stackoverflow.com/questions/47353555/how-to-get-random-value-of-attribute-of-enum-on-each-iteration)
