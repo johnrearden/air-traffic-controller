@@ -57,9 +57,16 @@ class Airfield:
         sys.stdout.write(self.output_string)
 
         # Write the details of the planes to the plane display
-        display_list = planes.values().enumerate()
+        display_list = list(enumerate(planes.values(), start=2))
         for item in display_list:
-            pass
+            y = item[0]
+            plane = item[1]
+            sys.stdout.write(getMoveCursorString(63, y))
+            sys.stdout.write(plane.color.value)
+            sys.stdout.write(plane.identity)
+            sys.stdout.write(f"  {plane.fuel}")
+            sys.stdout.write(getMoveCursorString(71, y))
+            sys.stdout.write(f"{plane.altitude}")
 
         # Restore the cursor to the input line and flush the buffer
         sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
@@ -78,7 +85,7 @@ class Plane:
     def __init__(self, identity):
         self.identity = identity
         (self.x_pos, self.y_pos, self.direction) = EntryPoints.random()
-        self.altitude = 5
+        self.altitude = 5000
         self.fuel = 50
         self.color = Colors.random()
 
