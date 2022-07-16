@@ -82,3 +82,6 @@ class EntryPoints(enum.Enum):
     def random():
         """Choose a random entry point from the above values"""
         return random.choice(list(EntryPoints)).value
+
+class LegalCommands(enum.Enum):
+    

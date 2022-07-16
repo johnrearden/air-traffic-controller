@@ -1,9 +1,12 @@
 import threading
 import sys
 import string
+import json
 import random
 from constants import UniChars, AnsiCommands, Direction, Colors, EntryPoints
 from utilities import getMoveCursorString
+
+allow_list = ["n", "e", "s", "w", "circle", "c", "land", "l"]
 
 class Airfield:
     """
@@ -12,6 +15,7 @@ class Airfield:
     def __init__(self, width, height):
         self.width = width
         self.height = height
+        self.planes = {}
         self.plane_names = list(string.ascii_lowercase)
         random.shuffle(self.plane_names)
         self.cells = []
@@ -113,8 +117,6 @@ class Plane:
         if not(self.eliminated):
             self.print()
 
-        
-
     def parse_command(self, command):
         """Interprets validated commands from the user"""
         if command == "n":
@@ -139,30 +141,41 @@ class Plane:
 def main_loop(airfield, planes, counter):
     """The main game loop"""
     airfield.print(planes)
-    if len(planes) < 10 and random.randint(1, 100) < 30:
+    if len(planes) < 10 and random.randint(1, 100) < 50:
         next_identifier = airfield.plane_names.pop(0)
         plane = Plane(next_identifier)
         planes[next_identifier] = plane
         airfield.plane_names.append(next_identifier)
     for plane in planes.values():
         plane.update()
-    planes = {key:plane for (key, plane) in planes.items() if plane.eliminated == False}
-    timer = threading.Timer(1.5, main_loop, [airfield, planes, counter + 1])
+    airfield.planes = {key:plane for (key, plane) in planes.items() if plane.eliminated is False}
+    timer = threading.Timer(1, main_loop, [airfield, airfield.planes, counter + 1])
     timer.start()
 
-def validate_command(command, planes):
+def validate_command(command, planes, allow_list):
+    """
+    Ensure commands entered by user are valid
+    """
+    
     if len(command) == 0:
         print_message("You didn't enter anything!", True)
         return
-    if len(command) > 3:
-        print_message("Too many commands!", True)
+    if len(command) > 16:
+        print_message("Command is too long!", True)
         return
 
     elements = command.split(" ")
     if elements[0] not in planes.keys():
         print_message("Sorry! No such plane!", True)
         return
-    plane_key = elements[0]
+
+    plane_key = elements.pop(0)
+    for command in elements:
+        if command not in allow_list:
+            print_message(f"'{command}' is not allowed!")
+            return
+    
+    planes[plane_key].execute_commands(elements)
 
 
 def print_message(message, error=False):
@@ -181,11 +194,10 @@ def main():
     sys.stdout.flush()
     airfield = Airfield(80, 20)
     airfield.initial_print()
-    planes = {}
-    main_loop(airfield, planes, 0)
+    main_loop(airfield, airfield.planes, 0)
     while True:
         command = input("Enter command : ")
-        validate_command(command, planes)
+        validate_command(command, airfield.planes, allow_list)
         sys.stdout.write(AnsiCommands.CURSOR_UP_ONE_LINE)
         sys.stdout.write(AnsiCommands.CLEAR_LINE)
         sys.stdout.flush()
