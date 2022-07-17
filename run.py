@@ -7,6 +7,7 @@ from utilities import getMoveCursorString
 
 allow_list = ["n", "north", "e", "east", "s", "south", "w", "west",
               "circle", "c", "land", "l", "5000", "4000", "3000", "2000", "1000"]
+runway = {"start": (14, 10), "end": (25, 10)}
 
 class Airfield:
     """
@@ -27,13 +28,17 @@ class Airfield:
         for ind in range(0, 20):
             self.cells[width * ind] = UniChars.BOX_VERTICAL
             self.cells[ind * width - 20] = UniChars.BOX_VERTICAL
-        list_1 = [i for i in range(822, 837)]
-        list_2 = ["-", "-", " ", "R", "U", "N", "W", "A", "Y", " ", "-", "-"]
-        for ind, char in zip(list_1, list_2):
-            self.cells[ind] = UniChars.HORIZONTAL_LINE
-            self.cells[ind + width * 2] = UniChars.HORIZONTAL_LINE
-            self.cells[ind + width] = char
-        self.cells[915] = UniChars.LEFT_ARROW
+        start = runway["start"][0] + width * runway["end"][1]
+        end = runway["end"][0] + width * runway["end"][1] + 1
+        list_1 = list(range(start, end))
+        runway_string = "---RUNWAY---"
+        for ind, char in zip(list_1, runway_string):
+            self.cells[ind - width] = UniChars.HORIZONTAL_LINE
+            self.cells[ind] = char
+            self.cells[ind + width] = UniChars.HORIZONTAL_LINE
+        runway_arrow_index = runway["end"][0] + 4 + runway["end"][1] * width
+        self.cells[runway_arrow_index] = UniChars.LEFT_ARROW
+        self.cells[runway_arrow_index + 4] = UniChars.LEFT_ARROW
         self.cells[0] = UniChars.BOX_TOP_LEFT
         self.cells[60] = UniChars.BOX_TOP_RIGHT
         self.cells[19 * width] = UniChars.BOX_BOTTOM_LEFT
@@ -127,18 +132,24 @@ class Plane:
                 abbreviation = command[0]
                 if abbreviation in ["n", "e", "s", "w"]:
                     self.change_direction(abbreviation)
+                elif abbreviation == "l":
+                    self.attempt_landing()
 
     def change_altitude(self, new_alt):
         """Sets a new altitude target for this plane and begins to adjust the 
            current altitude incrementally"""
         self.altitude = int(new_alt)
-        print_message(f"Plane {self.identity}: r waltitude set to {new_alt}")
+        print_message(f"Plane {self.identity}: altitude set to {new_alt}")
 
     def change_direction(self, new_dir):
         """Sets a new direction target for this plane and begins to adjust the 
            current altitude incrementally"""
         self.direction = Direction.get_direction(new_dir)
         print_message(f"Plane {self.identity}: heading set to {new_dir}")
+
+    def attempt_landing(self):
+        """Checks to see if landing conditions are met, and if so, lands the plane"""
+
     
     def print(self):
         """Prints this plane to the display"""
@@ -154,7 +165,7 @@ def main_loop(airfield, planes, counter):
     """The main game loop"""
     airfield.print(planes)
     rand = random.randint(1, 100)
-    should_add_plane = (len(planes) < 4 and rand < 30) or len(planes) == 0
+    should_add_plane = (len(planes) < 8 and rand < 30) or len(planes) == 0
     if should_add_plane:
         next_identifier = airfield.plane_names.pop(0)
         plane = Plane(next_identifier)
@@ -163,7 +174,7 @@ def main_loop(airfield, planes, counter):
     for plane in planes.values():
         plane.update()
     airfield.planes = {key:plane for (key, plane) in planes.items() if plane.eliminated is False}
-    timer = threading.Timer(3, main_loop, [airfield, airfield.planes, counter + 1])
+    timer = threading.Timer(2.5, main_loop, [airfield, airfield.planes, counter + 1])
     timer.start()
 
 def validate_command(command, planes, allowed_commands):
