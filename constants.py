@@ -64,7 +64,20 @@ class Direction(enum.Enum):
     WEST = UniChars.PLANE_WEST
 
     def get_character(self):
+        """Returns the value associated with the enum key"""
         return self.value
+
+    @staticmethod
+    def get_direction(letter):
+        """Returns the direction enum associated with the given string"""
+        if letter == "n":
+            return Direction.NORTH
+        if letter == "e":
+            return Direction.EAST
+        if letter == "s":
+            return Direction.SOUTH
+        else:
+            return Direction.WEST
 
 class EntryPoints(enum.Enum):
     """
@@ -83,5 +96,3 @@ class EntryPoints(enum.Enum):
         """Choose a random entry point from the above values"""
         return random.choice(list(EntryPoints)).value
 
-class LegalCommands(enum.Enum):
-    

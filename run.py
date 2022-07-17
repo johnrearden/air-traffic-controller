@@ -1,12 +1,13 @@
 import threading
 import sys
 import string
-import json
 import random
 from constants import UniChars, AnsiCommands, Direction, Colors, EntryPoints
 from utilities import getMoveCursorString
 
-allow_list = ["n", "e", "s", "w", "circle", "c", "land", "l"]
+allow_list = ["n", "north", "e", "east", "s", "south", "w", "west",
+              "circle", "c", "land", "l", "5", "5000", "4", "4000",
+              "3", "3000", "2", "2000", "1", "1000"]
 
 class Airfield:
     """
@@ -117,17 +118,29 @@ class Plane:
         if not(self.eliminated):
             self.print()
 
-    def parse_command(self, command):
-        """Interprets validated commands from the user"""
-        if command == "n":
-            self.direction = Direction.NORTH
-        elif command == "s":
-            self.direction = Direction.SOUTH
-        elif command == "e":
-            self.direction = Direction.EAST
-        elif command == "w":
-            self.direction = Direction.WEST
+    def execute_commands(self, commands):
+        """Takes a validated set of commands and passed them on
+           to the correct functions for modifying plane properties"""
+        for command in commands:
+            if command.isdigit():
+                self.change_altitude(command)
+            else :
+                abbreviation = command[0]
+                if abbreviation in ["n", "e", "s", "w"]:
+                    self.change_direction(abbreviation)
 
+    def change_altitude(self, new_alt):
+        """Sets a new altitude target for this plane and begins to adjust the 
+           current altitude incrementally"""
+        self.altitude = new_alt
+        print_message(f"Plane {self.identity} new altitude set to {new_alt}")
+
+    def change_direction(self, new_dir):
+        """Sets a new direction target for this plane and begins to adjust the 
+           current altitude incrementally"""
+        self.direction = Direction.get_direction(new_dir)
+        print_message(f"Plane {self.identity} heading set to {new_dir}")
+    
     def print(self):
         """Prints this plane to the display"""
         sys.stdout.write(AnsiCommands.SAVE_CURSOR)
@@ -152,11 +165,8 @@ def main_loop(airfield, planes, counter):
     timer = threading.Timer(1, main_loop, [airfield, airfield.planes, counter + 1])
     timer.start()
 
-def validate_command(command, planes, allow_list):
-    """
-    Ensure commands entered by user are valid
-    """
-    
+def validate_command(command, planes, allowed_commands):
+    """Ensure commands entered by user are valid"""
     if len(command) == 0:
         print_message("You didn't enter anything!", True)
         return
@@ -170,15 +180,16 @@ def validate_command(command, planes, allow_list):
         return
 
     plane_key = elements.pop(0)
-    for command in elements:
-        if command not in allow_list:
-            print_message(f"'{command}' is not allowed!")
+    for comm in elements:
+        if comm not in allowed_commands:
+            print_message(f"'{comm}' is not allowed!")
             return
     
     planes[plane_key].execute_commands(elements)
 
 
 def print_message(message, error=False):
+    """Print a message to the console (in red for errors, in white for confirmations)"""
     sys.stdout.write(AnsiCommands.SAVE_CURSOR)
     sys.stdout.write(getMoveCursorString(0, 22))
     if error:
