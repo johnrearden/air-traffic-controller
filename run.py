@@ -6,8 +6,7 @@ from constants import UniChars, AnsiCommands, Direction, Colors, EntryPoints
 from utilities import getMoveCursorString
 
 allow_list = ["n", "north", "e", "east", "s", "south", "w", "west",
-              "circle", "c", "land", "l", "5", "5000", "4", "4000",
-              "3", "3000", "2", "2000", "1", "1000"]
+              "circle", "c", "land", "l", "5000", "4000", "3000", "2000", "1000"]
 
 class Airfield:
     """
@@ -129,20 +128,17 @@ class Plane:
                 if abbreviation in ["n", "e", "s", "w"]:
                     self.change_direction(abbreviation)
 
-    def change_altitude(self, new_alt_str):
+    def change_altitude(self, new_alt):
         """Sets a new altitude target for this plane and begins to adjust the 
            current altitude incrementally"""
-        new_alt = int(new_alt_str)
-        if new_alt < 1000:
-            new_alt *= 1000
-        self.altitude = new_alt
-        print_message(f"Plane {self.identity} new altitude set to {new_alt}")
+        self.altitude = int(new_alt)
+        print_message(f"Plane {self.identity}: r waltitude set to {new_alt}")
 
     def change_direction(self, new_dir):
         """Sets a new direction target for this plane and begins to adjust the 
            current altitude incrementally"""
         self.direction = Direction.get_direction(new_dir)
-        print_message(f"Plane {self.identity} heading set to {new_dir}")
+        print_message(f"Plane {self.identity}: heading set to {new_dir}")
     
     def print(self):
         """Prints this plane to the display"""
