@@ -129,9 +129,12 @@ class Plane:
                 if abbreviation in ["n", "e", "s", "w"]:
                     self.change_direction(abbreviation)
 
-    def change_altitude(self, new_alt):
+    def change_altitude(self, new_alt_str):
         """Sets a new altitude target for this plane and begins to adjust the 
            current altitude incrementally"""
+        new_alt = int(new_alt_str)
+        if new_alt < 1000:
+            new_alt *= 1000
         self.altitude = new_alt
         print_message(f"Plane {self.identity} new altitude set to {new_alt}")
 
@@ -154,7 +157,9 @@ class Plane:
 def main_loop(airfield, planes, counter):
     """The main game loop"""
     airfield.print(planes)
-    if len(planes) < 10 and random.randint(1, 100) < 50:
+    rand = random.randint(1, 100)
+    should_add_plane = (len(planes) < 4 and rand < 30) or len(planes) == 0
+    if should_add_plane:
         next_identifier = airfield.plane_names.pop(0)
         plane = Plane(next_identifier)
         planes[next_identifier] = plane
@@ -162,7 +167,7 @@ def main_loop(airfield, planes, counter):
     for plane in planes.values():
         plane.update()
     airfield.planes = {key:plane for (key, plane) in planes.items() if plane.eliminated is False}
-    timer = threading.Timer(1, main_loop, [airfield, airfield.planes, counter + 1])
+    timer = threading.Timer(3, main_loop, [airfield, airfield.planes, counter + 1])
     timer.start()
 
 def validate_command(command, planes, allowed_commands):
