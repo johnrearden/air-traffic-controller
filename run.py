@@ -122,6 +122,10 @@ class Plane:
         if self.fuel <= 0:
             self.eliminated = True
 
+        # If the plane has landed, flag it as eliminated
+        if self.landing and self.x_pos <= runway["start"][0]:
+            self.eliminated = True
+
         # Print the plane to the display, as long as it has not just been eliminated
         if not(self.eliminated):
             self.print()
@@ -201,7 +205,8 @@ def main_loop(airfield, planes, counter):
     for plane in planes.values():
         plane.update()
     for plane in planes.values():
-        plane.print_info()
+        if not plane.eliminated:
+            plane.print_info()
     airfield.planes = {key:plane for (key, plane) in planes.items() if plane.eliminated is False}
     timer = threading.Timer(1.5, main_loop, [airfield, airfield.planes, counter + 1])
     timer.start()
