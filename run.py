@@ -8,6 +8,8 @@ from utilities import getMoveCursorString
 allow_list = ["n", "north", "e", "east", "s", "south", "w", "west",
               "circle", "c", "land", "l", "5000", "4000", "3000", "2000", "1000"]
 runway = {"start": (14, 10), "end": (25, 10)}
+AIRFIELD_WIDTH = 80
+AIRFIELD_HEIGHT = 20
 
 class Airfield:
     """
@@ -28,22 +30,22 @@ class Airfield:
         for ind in range(0, 20):
             self.cells[width * ind] = UniChars.BOX_VERTICAL
             self.cells[ind * width - 20] = UniChars.BOX_VERTICAL
-        start = runway["start"][0] + width * runway["end"][1]
-        end = runway["end"][0] + width * runway["end"][1] + 1
+        start = runway["start"][0] + width * (runway["end"][1] - 1)
+        end = runway["end"][0] + width * (runway["end"][1] - 1) + 1
         list_1 = list(range(start, end))
         runway_string = "---RUNWAY---"
         for ind, char in zip(list_1, runway_string):
             self.cells[ind - width] = UniChars.HORIZONTAL_LINE
             self.cells[ind] = char
             self.cells[ind + width] = UniChars.HORIZONTAL_LINE
-        runway_arrow_index = runway["end"][0] + 4 + runway["end"][1] * width
+        runway_arrow_index = runway["end"][0] + 4 + (runway["end"][1] - 1) * width
         self.cells[runway_arrow_index] = UniChars.LEFT_ARROW
         self.cells[runway_arrow_index + 4] = UniChars.LEFT_ARROW
         self.cells[0] = UniChars.BOX_TOP_LEFT
         self.cells[60] = UniChars.BOX_TOP_RIGHT
         self.cells[19 * width] = UniChars.BOX_BOTTOM_LEFT
         self.cells[19 * width + 60] = UniChars.BOX_BOTTOM_RIGHT
-        
+       
         for entry_point in EntryPoints:
             x = entry_point.value[0]
             y = entry_point.value[1]
@@ -97,6 +99,7 @@ class Plane:
         self.fuel = 50
         self.color = Colors.random()
         self.eliminated = False
+        self.landing = False
 
     def update(self):
         """Updates the planes position and altitude"""
@@ -119,6 +122,7 @@ class Plane:
         if self.fuel <= 0:
             self.eliminated = True
 
+        # Print the plane to the display, as long as it has not just been eliminated
         if not(self.eliminated):
             self.print()
 
@@ -149,14 +153,37 @@ class Plane:
 
     def attempt_landing(self):
         """Checks to see if landing conditions are met, and if so, lands the plane"""
+        altitude_ok = self.altitude == 1000
+        end = runway["end"][1]
+        y_pos_ok = self.y_pos == end
+        x_pos_ok = self.x_pos > runway["end"][0]
+        print_message(f"{self.y_pos},{end}")
+        if altitude_ok and y_pos_ok and x_pos_ok:
+            self.landing = True
+            print_message(f"Plane {self.identity} cleared for landing")
 
-    
     def print(self):
         """Prints this plane to the display"""
         sys.stdout.write(AnsiCommands.SAVE_CURSOR)
         sys.stdout.write(getMoveCursorString(self.x_pos, self.y_pos))
         sys.stdout.write(self.color.value)
-        sys.stdout.write(f"{self.direction.get_character()} {AnsiCommands.FAINT}{self.identity}")
+        sys.stdout.write(f"{self.direction.get_character()}")
+        sys.stdout.write(AnsiCommands.NORMAL)
+        sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
+        sys.stdout.flush()
+
+    def print_info(self):
+        """Prints this plane's identity and altitude to the display"""
+        sys.stdout.write(AnsiCommands.SAVE_CURSOR)
+        if self.x_pos < AIRFIELD_WIDTH - 2:
+            sys.stdout.write(getMoveCursorString(self.x_pos + 2, self.y_pos))
+            sys.stdout.write(f"{self.color.value}")
+            sys.stdout.write(f"{AnsiCommands.FAINT}{self.identity}")
+        sys.stdout.write(getMoveCursorString(self.x_pos - 1, self.y_pos + 1))
+        if self.y_pos < AIRFIELD_HEIGHT - 1:
+            sys.stdout.write(AnsiCommands.BLINK)
+            alt =  "land" if self.landing else str(self.altitude)
+            sys.stdout.write(str(alt))
         sys.stdout.write(AnsiCommands.NORMAL)
         sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
         sys.stdout.flush()
@@ -173,8 +200,10 @@ def main_loop(airfield, planes, counter):
         airfield.plane_names.append(next_identifier)
     for plane in planes.values():
         plane.update()
+    for plane in planes.values():
+        plane.print_info()
     airfield.planes = {key:plane for (key, plane) in planes.items() if plane.eliminated is False}
-    timer = threading.Timer(2.5, main_loop, [airfield, airfield.planes, counter + 1])
+    timer = threading.Timer(1.5, main_loop, [airfield, airfield.planes, counter + 1])
     timer.start()
 
 def validate_command(command, planes, allowed_commands):
@@ -215,7 +244,7 @@ def main():
     """Entry point for the program"""
     sys.stdout.write(AnsiCommands.CLEAR_SCREEN)
     sys.stdout.flush()
-    airfield = Airfield(80, 20)
+    airfield = Airfield(AIRFIELD_WIDTH, AIRFIELD_HEIGHT)
     airfield.initial_print()
     main_loop(airfield, airfield.planes, 0)
     while True:
