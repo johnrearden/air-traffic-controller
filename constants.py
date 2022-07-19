@@ -37,6 +37,14 @@ class Colors(str, enum.Enum):
         """Choose a random color from the above values"""
         return random.choice(list(Colors))
 
+    @staticmethod
+    def random_full():
+        """Create a random color"""
+        red = random.randint(0, 255)
+        green = random.randint(0, 255)
+        blue = random.randint(0, 255)
+        return f"\x1b[38;2;{red};{green};{blue}"
+
 class AnsiCommands(str, enum.Enum):
     """
     Holds the cursor movement and output deletion commands
