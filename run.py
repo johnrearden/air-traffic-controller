@@ -196,7 +196,7 @@ def main_loop(airfield, planes, counter):
     """The main game loop"""
     airfield.print(planes)
     rand = random.randint(1, 100)
-    should_add_plane = (len(planes) < 8 and rand < 30) or len(planes) == 0
+    should_add_plane = (len(planes) < 5 and rand < 30) or len(planes) == 0
     if should_add_plane:
         next_identifier = airfield.plane_names.pop(0)
         plane = Plane(next_identifier)
@@ -208,7 +208,7 @@ def main_loop(airfield, planes, counter):
         if not plane.eliminated:
             plane.print_info()
     airfield.planes = {key:plane for (key, plane) in planes.items() if plane.eliminated is False}
-    timer = threading.Timer(1.5, main_loop, [airfield, airfield.planes, counter + 1])
+    timer = threading.Timer(2.5, main_loop, [airfield, airfield.planes, counter + 1])
     timer.start()
 
 def validate_command(command, planes, allowed_commands):
@@ -245,8 +245,39 @@ def print_message(message, error=False):
     sys.stdout.write(AnsiCommands.RESTORE_CURSOR)
     sys.stdout.flush()
 
+def print_intro():
+    """Print welcome message and instructions to display"""
+    sys.stdout.write(AnsiCommands.CLEAR_SCREEN)
+    sys.stdout.flush()
+    print(f"{Colors.FOREGROUND_GREEN}WELCOME TO AIR TRAFFIC CONTROLLER!\n{AnsiCommands.DEFAULT_COLOR}")
+    print("You run a coffee stall in the airport. Zombie invaders have taken over the")
+    print("control tower and there is nobody left to run the computers! You have found")
+    print("an old terminal under the counter in your stall that by a lucky accident is")
+    print("still connected to the air traffic control system!")
+    print()
+    print("Unfortunately the controls are a bit rudimentary :(")
+    print()
+    print("You must use the command line to give the planes their orders.")
+    print()
+    print("First enter the letter assigned to the plane you want to give an order to.")
+    print("Then, after a space, you can enter one of the following directions:")
+    print(f"{Colors.FOREGROUND_ORANGE}(w)est, (e)ast, (n)orth, (s)outh{AnsiCommands.DEFAULT_COLOR}")
+    print()
+    print("To change a plane's altitude, enter its letter, a space, and then the new")
+    print(f"altitude in multiples of 1000 ... e.g. {Colors.FOREGROUND_ORANGE}'a 3000'{AnsiCommands.DEFAULT_COLOR}")
+    print()
+    print("Once the plane is heading for the runway, at an altitude of 1000, you can")
+    print(f"order it to land like this - {Colors.FOREGROUND_ORANGE}'a land'{AnsiCommands.DEFAULT_COLOR}")
+    print()
+    while True:
+        command = input("Enter (s)tart when ready... : ")
+        if command == "s" or command == "start":
+            print(AnsiCommands.TERMINAL_BELL)
+            break
+
 def main():
     """Entry point for the program"""
+    print_intro()
     sys.stdout.write(AnsiCommands.CLEAR_SCREEN)
     sys.stdout.flush()
     airfield = Airfield(AIRFIELD_WIDTH, AIRFIELD_HEIGHT)
